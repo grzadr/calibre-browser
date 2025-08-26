@@ -17,7 +17,7 @@ type Config struct {
 
 const (
 	requiredArgsSize = 1
-	argsDbPath       = 1
+	argsDbPath       = 0
 )
 
 func usage(cmd string) string {
