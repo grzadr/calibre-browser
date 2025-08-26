@@ -1,6 +1,6 @@
 module github.com/grzadr/calibre-browser
 
-go 1.25.0
+go 1.23
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
