@@ -6,21 +6,22 @@ package model
 
 import (
 	"database/sql"
+	"time"
 )
 
 type Book struct {
 	ID           int64
 	Title        string
 	Sort         sql.NullString
-	Timestamp    sql.NullTime
-	Pubdate      sql.NullTime
+	Timestamp    time.Time
+	Pubdate      time.Time
 	SeriesIndex  float64
-	AuthorSort   sql.NullString
-	Isbn         interface{}
-	Lccn         interface{}
-	Path         interface{}
+	AuthorSort   string
+	Isbn         string
+	Lccn         string
+	Path         string
 	Flags        int64
 	Uuid         sql.NullString
 	HasCover     sql.NullBool
-	LastModified interface{}
+	LastModified time.Time
 }

@@ -7,7 +7,7 @@ package model
 
 import (
 	"context"
-	"database/sql"
+	"time"
 )
 
 const listAllBooks = `-- name: ListAllBooks :many
@@ -24,10 +24,10 @@ FROM books
 type ListAllBooksRow struct {
 	ID         int64
 	Title      string
-	Authors    sql.NullString
-	AddedAt    sql.NullTime
-	ModifiedAt interface{}
-	Path       interface{}
+	Authors    string
+	AddedAt    time.Time
+	ModifiedAt time.Time
+	Path       string
 }
 
 func (q *Queries) ListAllBooks(ctx context.Context) ([]ListAllBooksRow, error) {

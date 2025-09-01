@@ -62,6 +62,7 @@ func run(args []string, ctx context.Context) error {
 		return fmt.Errorf("error opening db %q: %w", conf.dbPath, err)
 	}
 
+
 	queries := model.New(db)
 
 	books, err := queries.ListAllBooks(ctx)
