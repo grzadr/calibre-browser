@@ -1,8 +1,8 @@
 BIN_DIR = bin
 
-.PHONY: all browser-cli
+.PHONY: all server
 
-browser-cli:
+server:
 	go build -o $(BIN_DIR)/$@ ./cmd/$@
 
-all: browser-cli
+all: server
