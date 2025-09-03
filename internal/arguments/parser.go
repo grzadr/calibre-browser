@@ -2,6 +2,7 @@ package arguments
 
 import (
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -29,6 +30,7 @@ func validateDbPath(filename string) error {
 }
 
 func ParseArgs(args []string) (conf Config, err error) {
+	log.Printf("parsing arguments: %+v", args)
 	cmd := args[0]
 	args = args[1:]
 	if len(args) < requiredArgsSize {

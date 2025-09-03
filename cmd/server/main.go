@@ -22,7 +22,7 @@ const (
 	defaultErrChanCapacity = 4
 	defaultConnTimeout     = 5 * time.Minute
 	defaultConnReadTimeout = 1 * time.Second
-	defaultTerminaeTimeout = 10 * time.Second
+	defaultTerminateTimeout = 10 * time.Second
 )
 
 func acceptClientConnection(ctx context.Context,
@@ -36,7 +36,12 @@ func acceptClientConnection(ctx context.Context,
 	loop:
 		for {
 			conn, err := listener.Accept()
+
+
 			if err != nil {
+				if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+				continue // Allow shutdown check in next iteration
+			}
 				select {
 				case errChan <- err:
 					continue loop
@@ -122,7 +127,7 @@ func handleErrors(
 ) chan error {
 	errChan := make(chan error, defaultErrChanCapacity)
 	go func() {
-		defer close(errChan)
+		// defer close(errChan)
 		for {
 			select {
 			case err := <-errChan:
@@ -162,7 +167,7 @@ func setupGracefulShutdown(cancel context.CancelFunc, wg *sync.WaitGroup) {
 		select {
 		case <-done:
 			fmt.Println("all client connections closed gracefully")
-		case <-time.After(10 * time.Second):
+		case <-time.After(defaultTerminateTimeout):
 			log.Println("timeout reached - continuing shutdown")
 		}
 
@@ -176,6 +181,7 @@ func run(
 	ctx context.Context,
 	cancel context.CancelFunc,
 ) error {
+	log.Printf("running server with config:\n%+v\n", conf)
 	booksdb.InitializeBooksDb(conf.DbPath, ctx)
 
 	listener, err := socket.CreateSocketListener(socket.DefaultSocketPath)
@@ -184,6 +190,7 @@ func run(
 	defer listener.Close()
 
 	errChan := handleErrors(ctx, cancel)
+	defer close(errChan)
 
 	var wg sync.WaitGroup
 
@@ -191,10 +198,12 @@ func run(
 
 	go waitClientConnection(ctx, &listener, &wg, errChan)
 
+	<-ctx.Done()
 	return nil
 }
 
 func main() {
+	log.Println("initializing context")
 	ctx, cancel := context.WithCancel(context.Background())
 
 	conf, err := arguments.ParseArgs(os.Args)
