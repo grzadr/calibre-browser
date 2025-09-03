@@ -10,7 +10,7 @@ import (
 )
 
 type BooksDb struct {
-	dbPath string
+	dbPath  string
 	queries *model.Queries
 	books   []*model.BooksListRow
 }
@@ -23,7 +23,8 @@ var (
 func InitializeBooksDb(dbPath string, ctx context.Context) (err error) {
 	dbOnce.Do(func() {
 		db = &BooksDb{dbPath: dbPath}
-		sqlDb, err := sql.Open("sqlite", dbPath)
+		var sqlDb *sql.DB
+		sqlDb, err = sql.Open("sqlite", dbPath)
 		if err != nil {
 			err = fmt.Errorf("error opening db %q: %w", dbPath, err)
 			return

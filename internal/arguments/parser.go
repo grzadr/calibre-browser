@@ -23,6 +23,7 @@ func validateDbPath(filename string) error {
 	if err != nil {
 		return fmt.Errorf("cannot access database file '%s': %w", filename, err)
 	}
+
 	defer file.Close()
 	return nil
 }
