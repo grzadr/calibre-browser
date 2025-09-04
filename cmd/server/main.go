@@ -19,9 +19,9 @@ import (
 )
 
 const (
-	defaultErrChanCapacity = 4
-	defaultConnTimeout     = 5 * time.Minute
-	defaultConnReadTimeout = 1 * time.Second
+	defaultErrChanCapacity  = 4
+	defaultConnTimeout      = 5 * time.Minute
+	defaultConnReadTimeout  = 1 * time.Second
 	defaultTerminateTimeout = 10 * time.Second
 )
 
@@ -36,12 +36,10 @@ func acceptClientConnection(ctx context.Context,
 	loop:
 		for {
 			conn, err := listener.Accept()
-
-
 			if err != nil {
 				if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
-				continue // Allow shutdown check in next iteration
-			}
+					continue // Allow shutdown check in next iteration
+				}
 				select {
 				case errChan <- err:
 					continue loop
@@ -171,7 +169,6 @@ func setupGracefulShutdown(cancel context.CancelFunc, wg *sync.WaitGroup) {
 			log.Println("timeout reached - continuing shutdown")
 		}
 
-		// NO os.Exit(0) - let main() handle cleanup
 		log.Println("signal handler completed - returning control to main")
 	}()
 }
@@ -206,7 +203,7 @@ func main() {
 	log.Println("initializing context")
 	ctx, cancel := context.WithCancel(context.Background())
 
-	conf, err := arguments.ParseArgs(os.Args)
+	conf, err := arguments.ParseArgsServer(os.Args)
 	if err != nil {
 		log.Fatalln(fmt.Errorf("error parsing args: %w", err))
 	}
@@ -215,32 +212,3 @@ func main() {
 		log.Fatalln(fmt.Errorf("error running server: %w", err))
 	}
 }
-
-// func setupGracefulShutdown(cancel context.CancelFunc, wg *sync.WaitGroup) {
-// 	sigChan := make(chan os.Signal, 1)
-// 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-
-// 	go func() {
-// 		sig := <-sigChan
-// 		fmt.Printf("Received signal %v, initiating graceful shutdown\n", sig)
-
-// 		// Cancel context - broadcasts to all goroutines
-// 		cancel()
-
-// 		// Wait for all client handlers to complete with timeout
-// 		done := make(chan struct{})
-// 		go func() {
-// 			wg.Wait()
-// 			close(done)
-// 		}()
-
-// 		select {
-// 		case <-done:
-// 			fmt.Println("All client connections closed gracefully")
-// 		case <-time.After(10 * time.Second):
-// 			fmt.Println("Timeout reached - forcing shutdown")
-// 		}
-
-// 		os.Exit(0)
-// 	}()
-// }
