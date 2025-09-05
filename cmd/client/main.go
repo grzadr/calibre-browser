@@ -15,7 +15,21 @@ func run(conf arguments.Config,
 	cancel context.CancelFunc,
 ) error {
 	log.Printf("running server with config:\n%+v\n", conf)
-	booksdb.InitializeBooksDb(conf.DbPath, ctx)
+	if err := booksdb.InitializeBooksDb(conf.DbPath, ctx); err != nil {
+		return fmt.Errorf("error initializng database %q: %w", conf.DbPath, err)
+	}
+
+	entries, err := booksdb.ExecuteCommand(
+		booksdb.GetBooksDb(),
+		conf.Cmd,
+		conf.Args,
+	)
+	if err != nil {
+		return fmt.Errorf("error running command %q: %w", conf.Cmd, err)
+	}
+	for i, entry := range entries {
+		log.Printf("%d: %+v", i, entry)
+	}
 
 	return nil
 }

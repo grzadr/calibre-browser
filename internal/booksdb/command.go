@@ -31,7 +31,33 @@ func UnknownCommand(db *BooksDb, args []string) (BookEntrySlice, error) {
 }
 
 func SearchTitleCommand(db *BooksDb, args []string) (BookEntrySlice, error) {
-	return nil, nil
+	counter := make(map[int]int)
+	words := lowerCase(args)
+
+	for _, word := range words {
+		if ids, found := db.titleIndex.words[word]; found {
+			for _, id := range ids {
+				counter[id] += 1
+			}
+		}
+	}
+
+	type JaccardIndex struct {
+		score float32
+		id    int
+	}
+
+	scores := make([]JaccardIndex, len(counter))
+
+	wordsSize := len(words)
+
+	for id, count := range counter {
+		scores = append(scores, JaccardIndex{
+			score: count) / (wordsSize + db.titleIndex.sizes[id]),
+		})
+	}
+
+	return BookEntrySlice{}, nil
 }
 
 var CommandMap = [...]CommandFunc{

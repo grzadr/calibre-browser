@@ -63,9 +63,10 @@ func NewTitleIndex(db *BooksDb) (index *TitleIndex) {
 }
 
 type BooksDb struct {
-	dbPath  string
-	queries *model.Queries
-	books   map[int]*model.BookEntryRow
+	dbPath     string
+	queries    *model.Queries
+	books      map[int]*model.BookEntryRow
+	titleIndex *TitleIndex
 }
 
 func NewBooksDb(dbPath string, ctx context.Context) (db *BooksDb, err error) {
@@ -90,31 +91,36 @@ func NewBooksDb(dbPath string, ctx context.Context) (db *BooksDb, err error) {
 		db.books[int(book.ID)] = book
 	}
 
+	db.titleIndex = NewTitleIndex(db)
+
 	return
 }
 
 var (
-	db         *BooksDb
-	dbLock     sync.RWMutex
-	titleIndex *TitleIndex
+	db     *BooksDb
+	dbLock sync.RWMutex
 )
 
 func InitializeBooksDb(dbPath string, ctx context.Context) (err error) {
+	dbLock.Lock()
+	defer dbLock.Unlock()
 	db, err = NewBooksDb(dbPath, ctx)
 	if err != nil {
 		return
 	}
 
-	titleIndex = NewTitleIndex(db)
-
 	return
 }
 
-func ExecuteCommand(cmd string, args []string) (BookEntrySlice, error) {
+func ExecuteCommand(
+	db *BooksDb,
+	cmd string,
+	args []string,
+) (BookEntrySlice, error) {
 	dbLock.RLock()
 	defer dbLock.RUnlock()
 
-	return CommandMap[NewCommand(cmd)](GetBooksDb(), args)
+	return CommandMap[NewCommand(cmd)](db, args)
 }
 
 func GetBooksDb() *BooksDb {
