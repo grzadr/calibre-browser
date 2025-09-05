@@ -8,7 +8,6 @@ import (
 
 	"github.com/grzadr/calibre-browser/internal/arguments"
 	"github.com/grzadr/calibre-browser/internal/booksdb"
-	"github.com/grzadr/calibre-browser/internal/query"
 )
 
 func run(conf arguments.Config,
@@ -17,13 +16,6 @@ func run(conf arguments.Config,
 ) error {
 	log.Printf("running server with config:\n%+v\n", conf)
 	booksdb.InitializeBooksDb(conf.DbPath, ctx)
-
-	switch query.NewCommand(conf.Cmd) {
-	case query.SearchTitle:
-
-	default:
-		return fmt.Errorf("unsupported client command: %q", conf.Cmd)
-	}
 
 	return nil
 }

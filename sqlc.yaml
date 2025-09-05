@@ -8,3 +8,4 @@ sql:
         package: "model"
         out: "internal/model"
         emit_result_struct_pointers: true
+        emit_empty_slices: true

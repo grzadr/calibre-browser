@@ -1,4 +1,4 @@
--- name: BooksList :many
+-- name: BookEntry :many
 SELECT
     id,
     title,
