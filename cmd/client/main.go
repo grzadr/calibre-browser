@@ -14,7 +14,7 @@ func run(conf arguments.Config,
 	ctx context.Context,
 	cancel context.CancelFunc,
 ) error {
-	log.Printf("running server with config:\n%+v\n", conf)
+	log.Printf("running client with config:\n%+v\n", conf)
 	if err := booksdb.InitializeBooksDb(conf.DbPath, ctx); err != nil {
 		return fmt.Errorf("error initializng database %q: %w", conf.DbPath, err)
 	}
@@ -30,6 +30,8 @@ func run(conf arguments.Config,
 	for i, entry := range entries {
 		log.Printf("%d: %+v", i, entry)
 	}
+
+	log.Println("completed client run")
 
 	return nil
 }

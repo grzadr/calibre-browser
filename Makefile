@@ -1,8 +1,11 @@
 BIN_DIR = bin
 
-.PHONY: all server
+.PHONY: all server client
 
 server:
 	go build -o $(BIN_DIR)/$@ ./cmd/$@
 
-all: server
+client:
+	go build -o $(BIN_DIR)/$@ ./cmd/$@
+
+all: server client

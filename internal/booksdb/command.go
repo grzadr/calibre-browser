@@ -1,7 +1,9 @@
 package booksdb
 
 import (
+	"cmp"
 	"fmt"
+	"slices"
 
 	"github.com/grzadr/calibre-browser/internal/model"
 )
@@ -53,11 +55,28 @@ func SearchTitleCommand(db *BooksDb, args []string) (BookEntrySlice, error) {
 
 	for id, count := range counter {
 		scores = append(scores, JaccardIndex{
-			score: count) / (wordsSize + db.titleIndex.sizes[id]),
+			score: float32(
+				count,
+			) / float32(
+				wordsSize+db.titleIndex.sizes[id]-count,
+			),
+			id: id,
 		})
 	}
 
-	return BookEntrySlice{}, nil
+	slices.SortFunc(scores, func(left, right JaccardIndex) int {
+		return -1 * cmp.Compare(left.score, right.score)
+	})
+
+	slices.Reverse(scores)
+
+	entries := make(BookEntrySlice, len(scores))
+
+	for i, score := range scores {
+		entries[i] = db.books[score.id]
+	}
+
+	return entries, nil
 }
 
 var CommandMap = [...]CommandFunc{

@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/grzadr/calibre-browser/internal/model"
+	_ "modernc.org/sqlite"
 )
 
 type (

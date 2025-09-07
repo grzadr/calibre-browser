@@ -15,7 +15,6 @@ import (
 	"github.com/grzadr/calibre-browser/internal/arguments"
 	"github.com/grzadr/calibre-browser/internal/booksdb"
 	"github.com/grzadr/calibre-browser/internal/socket"
-	_ "modernc.org/sqlite"
 )
 
 const (
