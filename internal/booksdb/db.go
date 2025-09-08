@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"unicode"
 
 	"github.com/grzadr/calibre-browser/internal/model"
@@ -15,11 +15,29 @@ import (
 )
 
 type (
-	BookId int
-	Word   string
+	Word           string
+	BookEntrySlice []model.BookEntryRow
+	BookEntryId    int
 )
 
 const defaultIndexWordsCapacity = 1000 * 1024 // TODO Adjust for actual usage
+
+type BookRepository struct {
+	dbPath string
+	*model.Queries
+}
+
+func NewBookRepository(
+	dbPath string,
+	ctx context.Context,
+) (*BookRepository, error) {
+	sqlDb, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("error opening db %q: %w", dbPath, err)
+	}
+
+	return &BookRepository{dbPath: dbPath, Queries: model.New(sqlDb)}, nil
+}
 
 var diacriticalMap = map[rune]string{
 	// Polish diacriticals (lowercase only)
@@ -27,7 +45,7 @@ var diacriticalMap = map[rune]string{
 	'ń': "n", 'ó': "o", 'ś': "s", 'ź': "z", 'ż': "z",
 }
 
-func normalizeWord(word string) string {
+func normalizeWord(word string) Word {
 	var result strings.Builder
 
 	result.Grow(len(word) * 2)
@@ -40,118 +58,158 @@ func normalizeWord(word string) string {
 			result.WriteRune(lowered)
 		}
 	}
-	return result.String()
+	return Word(result.String())
 }
 
-func normalizeWordSlice(words []string) (lowered []string) {
-	lowered = make([]string, len(words))
+func normalizeWordSlice(words []string) (lowered []Word) {
+	lowered = make([]Word, len(words))
 	for i, word := range words {
 		lowered[i] = normalizeWord(word)
-
-		if word == "społeczna" {
-			log.Println(word, lowered[i])
-		}
 	}
 
 	return
 }
 
-func splitTitle(title string) (words []string) {
-	words = slices.DeleteFunc(
+func splitTitle(title string) []Word {
+	return normalizeWordSlice(slices.DeleteFunc(
 		strings.Split(title, " "),
 		func(word string) bool {
 			return word == ""
 		},
-	)
-	return normalizeWordSlice(words)
+	))
 }
 
-type TitleIndex struct {
-	words map[string][]int
-	sizes map[int]int
+type BookSearchIndex struct {
+	words    map[Word][]BookEntryId
+	numWords map[BookEntryId]int
 }
 
-func NewTitleIndex(db *BooksDb) (index *TitleIndex) {
-	index = &TitleIndex{
-		words: make(map[string][]int, defaultIndexWordsCapacity),
-		sizes: make(map[int]int, len(db.books)),
+func NewBookSearchIndex(capacity int) *BookSearchIndex {
+	return &BookSearchIndex{
+		words:    make(map[Word][]BookEntryId, defaultIndexWordsCapacity),
+		numWords: make(map[BookEntryId]int, capacity),
 	}
+}
 
-	for id, book := range db.books {
+type BookEntries struct {
+	books  BookEntrySlice
+	titles *BookSearchIndex
+	// ids   map[types.BookId]BookEntryId
+}
+
+func NewTitleIndex(books BookEntrySlice) (index *BookSearchIndex) {
+	index = NewBookSearchIndex(len(books))
+
+	for id, book := range books {
+		// id := book.ID
+		entryId := BookEntryId(id)
 		for _, word := range splitTitle(book.Title) {
-			index.sizes[id] = len(word)
+			index.numWords[entryId] = len(word)
 
 			if ids, found := index.words[word]; found {
-				index.words[word] = append(ids, id)
+				index.words[word] = append(ids, entryId)
 			} else {
-				index.words[word] = []int{id}
+				index.words[word] = []BookEntryId{entryId}
 			}
 		}
 	}
 	return
 }
 
-type BooksDb struct {
-	dbPath     string
-	queries    *model.Queries
-	books      map[int]*model.BookEntryRow
-	titleIndex *TitleIndex
+func NewBookEntries(
+	repo *BookRepository,
+	ctx context.Context,
+) (*BookEntries, error) {
+	entries := &BookEntries{}
+	var err error
+
+	if entries.books, err = repo.BookEntry(ctx); err != nil {
+		return nil, fmt.Errorf("error listing books %q: %w", repo.dbPath, err)
+	}
+
+	entries.titles = NewTitleIndex(entries.books)
+
+	return entries, nil
 }
 
-func NewBooksDb(dbPath string, ctx context.Context) (db *BooksDb, err error) {
-	db = &BooksDb{dbPath: dbPath}
-	var sqlDb *sql.DB
-	sqlDb, err = sql.Open("sqlite", dbPath)
-	if err != nil {
-		err = fmt.Errorf("error opening db %q: %w", dbPath, err)
-		return
-	}
+// type BooksDb struct {
+// 	dbPath     string
+// 	queries    *model.Queries
+// 	books      map[int]*model.BookEntryRow
+// 	titleIndex *TitleIndex
+// }
 
-	db.queries = model.New(sqlDb)
+// func NewBooksDb(dbPath string, ctx context.Context) (db *BooksDb, err error)
+// {
+// 	db = &BooksDb{dbPath: dbPath}
+// 	var sqlDb *sql.DB
+// 	sqlDb, err = sql.Open("sqlite", dbPath)
+// 	if err != nil {
+// 		err = fmt.Errorf("error opening db %q: %w", dbPath, err)
+// 		return
+// 	}
 
-	books, err := db.queries.BookEntry(ctx)
-	if err != nil {
-		err = fmt.Errorf("error listing books %q: %w", dbPath, err)
-	}
+// 	db.queries = model.New(sqlDb)
 
-	db.books = make(map[int]*model.BookEntryRow, len(books))
+// 	books, err := db.queries.BookEntry(ctx)
+// 	if err != nil {
+// 		err = fmt.Errorf("error listing books %q: %w", dbPath, err)
+// 	}
 
-	for _, book := range books {
-		db.books[int(book.ID)] = book
-	}
+// 	db.books = make(map[int]*model.BookEntryRow, len(books))
 
-	db.titleIndex = NewTitleIndex(db)
+// 	for _, book := range books {
+// 		db.books[int(book.ID)] = book
+// 	}
 
-	return
-}
+// 	db.titleIndex = NewTitleIndex(db)
+
+// 	return
+// }
+
+// type BookEntriesIndex struct {
+// 	entries *BookEntries
+// 	titles  *BookSearchIndex
+// }
 
 var (
-	db     *BooksDb
-	dbLock sync.RWMutex
+	// db         *BooksDb.
+	dbOnce     sync.Once
+	repository *BookRepository
+	index      atomic.Pointer[BookEntries]
+	// entries    atomic.Pointer[BookEntries]
+	// titleIndex atomic.Pointer[BookSearchIndex]
+	// dbLock     sync.RWMutex.
 )
 
-func InitializeBooksDb(dbPath string, ctx context.Context) (err error) {
-	dbLock.Lock()
-	defer dbLock.Unlock()
-	db, err = NewBooksDb(dbPath, ctx)
+func RefreshBookEntries(repo *BookRepository, ctx context.Context) error {
+	entries, err := NewBookEntries(repo, ctx)
 	if err != nil {
-		return
+		return fmt.Errorf(
+			"failed to refresh book entries %q: %w",
+			repo.dbPath,
+			err,
+		)
 	}
+	index.Store(entries)
+
+	return nil
+}
+
+func PopulateBooksRepository(dbPath string, ctx context.Context) (err error) {
+	repository, err = NewBookRepository(dbPath, ctx)
 
 	return
 }
 
 func ExecuteCommand(
-	db *BooksDb,
+	index *BookEntries,
 	cmd string,
 	args []string,
 ) (BookEntrySlice, error) {
-	dbLock.RLock()
-	defer dbLock.RUnlock()
-
-	return CommandMap[NewCommand(cmd)](db, args)
+	return CommandMap[NewCommand(cmd)](index, args)
 }
 
-func GetBooksDb() *BooksDb {
-	return db
+func GetBooksEntries() *BookEntries {
+	return index.Load()
 }

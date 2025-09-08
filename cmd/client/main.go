@@ -15,7 +15,7 @@ func run(conf arguments.Config,
 	cancel context.CancelFunc,
 ) error {
 	log.Printf("running client with config:\n%+v\n", conf)
-	if err := booksdb.InitializeBooksDb(conf.DbPath, ctx); err != nil {
+	if err := booksdb.PopulateBooksRepository(conf.DbPath, ctx); err != nil {
 		return fmt.Errorf("error initializng database %q: %w", conf.DbPath, err)
 	}
 

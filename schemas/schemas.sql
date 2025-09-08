@@ -14,3 +14,4 @@ CREATE TABLE books (
     has_cover       BOOL DEFAULT 0,
     last_modified   TIMESTAMP NOT NULL
 );
+

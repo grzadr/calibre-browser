@@ -7,5 +7,6 @@ sql:
       go:
         package: "model"
         out: "internal/model"
-        emit_result_struct_pointers: true
+        emit_result_struct_pointers: false
         emit_empty_slices: true
+        emit_prepared_queries: true

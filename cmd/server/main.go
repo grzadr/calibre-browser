@@ -178,7 +178,7 @@ func run(
 	cancel context.CancelFunc,
 ) error {
 	log.Printf("running server with config:\n%+v\n", conf)
-	booksdb.InitializeBooksDb(conf.DbPath, ctx)
+	booksdb.PopulateBooksRepository(conf.DbPath, ctx)
 
 	listener, err := socket.CreateSocketListener(socket.DefaultSocketPath)
 	if err != nil {

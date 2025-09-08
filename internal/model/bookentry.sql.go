@@ -30,13 +30,13 @@ type BookEntryRow struct {
 	Path       string
 }
 
-func (q *Queries) BookEntry(ctx context.Context) ([]*BookEntryRow, error) {
-	rows, err := q.db.QueryContext(ctx, bookEntry)
+func (q *Queries) BookEntry(ctx context.Context) ([]BookEntryRow, error) {
+	rows, err := q.query(ctx, q.bookEntryStmt, bookEntry)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []*BookEntryRow{}
+	items := []BookEntryRow{}
 	for rows.Next() {
 		var i BookEntryRow
 		if err := rows.Scan(
@@ -49,7 +49,7 @@ func (q *Queries) BookEntry(ctx context.Context) ([]*BookEntryRow, error) {
 		); err != nil {
 			return nil, err
 		}
-		items = append(items, &i)
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
