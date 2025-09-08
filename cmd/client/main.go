@@ -20,7 +20,7 @@ func run(conf arguments.Config,
 	}
 
 	entries, err := booksdb.ExecuteCommand(
-		booksdb.GetBooksDb(),
+		booksdb.GetBooksEntries(),
 		conf.Cmd,
 		conf.Args,
 	)

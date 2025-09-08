@@ -1,12 +1,12 @@
 package booksdb
 
 import (
+	"cmp"
 	"context"
 	"database/sql"
 	"fmt"
 	"slices"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"unicode"
 
@@ -20,7 +20,10 @@ type (
 	BookEntryId    int
 )
 
-const defaultIndexWordsCapacity = 1000 * 1024 // TODO Adjust for actual usage
+const (
+	defaultIndexWordsCapacity = 1000 * 1024 // TODO Adjust for actual usage
+	defaultJaccardCapacity    = 64
+)
 
 type BookRepository struct {
 	dbPath string
@@ -91,17 +94,69 @@ func NewBookSearchIndex(capacity int) *BookSearchIndex {
 	}
 }
 
+func (index *BookSearchIndex) findSimilar(
+	words []Word,
+) []BookEntryId {
+	countedWords := make([]int, 0, defaultJaccardCapacity)
+	totalWords := make([]float32, 0, defaultJaccardCapacity)
+	countedIds := make([]BookEntryId, 0, defaultJaccardCapacity)
+	indices := make([]int, 0, defaultJaccardCapacity)
+	visitedIds := make(map[BookEntryId]int)
+
+	lastIndex := 0
+
+	for _, word := range words {
+		ids, found := index.words[word]
+		if !found {
+			continue
+		}
+		for _, bookId := range ids {
+			i, found := visitedIds[bookId]
+			if !found {
+				i = lastIndex
+				lastIndex++
+				countedWords = append(countedWords, 1)
+				totalWords = append(totalWords, float32(index.numWords[bookId]))
+				countedIds = append(countedIds, bookId)
+				indices = append(indices, i)
+				visitedIds[bookId] = i
+			} else {
+				countedWords[i]++
+			}
+		}
+	}
+
+	scores := make([]float32, len(countedIds))
+	querySize := float32(len(words))
+
+	for i := range countedIds {
+		counted := float32(countedWords[i])
+
+		scores[i] = counted / (querySize + totalWords[i] - counted)
+	}
+
+	slices.SortFunc(indices, func(left, right int) int {
+		return cmp.Compare(scores[right], scores[left])
+	})
+
+	found := make([]BookEntryId, len(scores))
+
+	for i, id := range indices {
+		found[i] = countedIds[id]
+	}
+
+	return found
+}
+
 type BookEntries struct {
 	books  BookEntrySlice
 	titles *BookSearchIndex
-	// ids   map[types.BookId]BookEntryId
 }
 
 func NewTitleIndex(books BookEntrySlice) (index *BookSearchIndex) {
 	index = NewBookSearchIndex(len(books))
 
 	for id, book := range books {
-		// id := book.ID
 		entryId := BookEntryId(id)
 		for _, word := range splitTitle(book.Title) {
 			index.numWords[entryId] = len(word)
@@ -132,54 +187,9 @@ func NewBookEntries(
 	return entries, nil
 }
 
-// type BooksDb struct {
-// 	dbPath     string
-// 	queries    *model.Queries
-// 	books      map[int]*model.BookEntryRow
-// 	titleIndex *TitleIndex
-// }
-
-// func NewBooksDb(dbPath string, ctx context.Context) (db *BooksDb, err error)
-// {
-// 	db = &BooksDb{dbPath: dbPath}
-// 	var sqlDb *sql.DB
-// 	sqlDb, err = sql.Open("sqlite", dbPath)
-// 	if err != nil {
-// 		err = fmt.Errorf("error opening db %q: %w", dbPath, err)
-// 		return
-// 	}
-
-// 	db.queries = model.New(sqlDb)
-
-// 	books, err := db.queries.BookEntry(ctx)
-// 	if err != nil {
-// 		err = fmt.Errorf("error listing books %q: %w", dbPath, err)
-// 	}
-
-// 	db.books = make(map[int]*model.BookEntryRow, len(books))
-
-// 	for _, book := range books {
-// 		db.books[int(book.ID)] = book
-// 	}
-
-// 	db.titleIndex = NewTitleIndex(db)
-
-// 	return
-// }
-
-// type BookEntriesIndex struct {
-// 	entries *BookEntries
-// 	titles  *BookSearchIndex
-// }
-
 var (
-	// db         *BooksDb.
-	dbOnce     sync.Once
 	repository *BookRepository
 	index      atomic.Pointer[BookEntries]
-	// entries    atomic.Pointer[BookEntries]
-	// titleIndex atomic.Pointer[BookSearchIndex]
-	// dbLock     sync.RWMutex.
 )
 
 func RefreshBookEntries(repo *BookRepository, ctx context.Context) error {
@@ -198,6 +208,15 @@ func RefreshBookEntries(repo *BookRepository, ctx context.Context) error {
 
 func PopulateBooksRepository(dbPath string, ctx context.Context) (err error) {
 	repository, err = NewBookRepository(dbPath, ctx)
+	if err != nil {
+		return fmt.Errorf(
+			"failed to populate books repository %q: %w",
+			dbPath,
+			err,
+		)
+	}
+
+	err = RefreshBookEntries(repository, ctx)
 
 	return
 }
