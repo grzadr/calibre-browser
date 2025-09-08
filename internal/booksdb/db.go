@@ -4,9 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"slices"
 	"strings"
 	"sync"
+	"unicode"
 
 	"github.com/grzadr/calibre-browser/internal/model"
 	_ "modernc.org/sqlite"
@@ -19,10 +21,36 @@ type (
 
 const defaultIndexWordsCapacity = 1000 * 1024 // TODO Adjust for actual usage
 
-func lowerCase(words []string) (lowered []string) {
+var diacriticalMap = map[rune]string{
+	// Polish diacriticals (lowercase only)
+	'ą': "a", 'ć': "c", 'ę': "e", 'ł': "l",
+	'ń': "n", 'ó': "o", 'ś': "s", 'ź': "z", 'ż': "z",
+}
+
+func normalizeWord(word string) string {
+	var result strings.Builder
+
+	result.Grow(len(word) * 2)
+
+	for _, r := range word {
+		lowered := unicode.ToLower(r)
+		if mapped, exists := diacriticalMap[lowered]; exists {
+			result.WriteString(mapped)
+		} else {
+			result.WriteRune(lowered)
+		}
+	}
+	return result.String()
+}
+
+func normalizeWordSlice(words []string) (lowered []string) {
 	lowered = make([]string, len(words))
 	for i, word := range words {
-		lowered[i] = strings.ToLower(word)
+		lowered[i] = normalizeWord(word)
+
+		if word == "społeczna" {
+			log.Println(word, lowered[i])
+		}
 	}
 
 	return
@@ -35,7 +63,7 @@ func splitTitle(title string) (words []string) {
 			return word == ""
 		},
 	)
-	return lowerCase(words)
+	return normalizeWordSlice(words)
 }
 
 type TitleIndex struct {

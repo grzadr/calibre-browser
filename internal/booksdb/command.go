@@ -32,33 +32,42 @@ func UnknownCommand(db *BooksDb, args []string) (BookEntrySlice, error) {
 	return nil, fmt.Errorf("unknown command")
 }
 
-func SearchTitleCommand(db *BooksDb, args []string) (BookEntrySlice, error) {
-	counter := make(map[int]int)
-	words := lowerCase(args)
+func countWords(words []string) (counted map[int]int) {
+	counted = make(map[int]int)
+	words = normalizeWordSlice(words)
 
 	for _, word := range words {
 		if ids, found := db.titleIndex.words[word]; found {
 			for _, id := range ids {
-				counter[id] += 1
+				counted[id] += 1
 			}
 		}
 	}
+	return
+}
+
+func SearchTitleCommand(db *BooksDb, args []string) (BookEntrySlice, error) {
+	countedWords := countWords(args)
+
+	if len(countedWords) == 0 {
+		return BookEntrySlice{}, nil
+	}
+
+	numWords := len(args)
 
 	type JaccardIndex struct {
 		score float32
 		id    int
 	}
 
-	scores := make([]JaccardIndex, len(counter))
+	scores := make([]JaccardIndex, 0, len(countedWords))
 
-	wordsSize := len(words)
-
-	for id, count := range counter {
+	for id, count := range countedWords {
 		scores = append(scores, JaccardIndex{
 			score: float32(
 				count,
 			) / float32(
-				wordsSize+db.titleIndex.sizes[id]-count,
+				numWords+db.titleIndex.sizes[id]-count,
 			),
 			id: id,
 		})
