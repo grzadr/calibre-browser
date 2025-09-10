@@ -10,3 +10,6 @@ sql:
         emit_result_struct_pointers: false
         emit_empty_slices: true
         emit_prepared_queries: true
+        overrides:
+          - column: books.id
+            go_type: uint16

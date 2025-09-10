@@ -10,7 +10,7 @@ import (
 )
 
 type Book struct {
-	ID           int64
+	ID           uint16
 	Title        string
 	Sort         sql.NullString
 	Timestamp    time.Time

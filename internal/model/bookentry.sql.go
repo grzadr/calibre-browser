@@ -22,7 +22,7 @@ FROM books
 `
 
 type BookEntryRow struct {
-	ID         int64
+	ID         uint16
 	Title      string
 	Authors    string
 	AddedAt    time.Time

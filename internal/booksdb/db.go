@@ -17,7 +17,7 @@ import (
 type (
 	Word           string
 	BookEntrySlice []model.BookEntryRow
-	BookEntryId    int
+	BookEntryId    uint16
 )
 
 const (
@@ -73,15 +73,6 @@ func normalizeWordSlice(words []string) (lowered []Word) {
 	return
 }
 
-func splitTitle(title string) []Word {
-	return normalizeWordSlice(slices.DeleteFunc(
-		strings.Split(title, " "),
-		func(word string) bool {
-			return word == ""
-		},
-	))
-}
-
 type BookSearchIndex struct {
 	words    map[Word][]BookEntryId
 	numWords map[BookEntryId]int
@@ -92,6 +83,20 @@ func NewBookSearchIndex(capacity int) *BookSearchIndex {
 		words:    make(map[Word][]BookEntryId, defaultIndexWordsCapacity),
 		numWords: make(map[BookEntryId]int, capacity),
 	}
+}
+
+type SimilarityIndexSOA[Id any] struct {
+	counts []uint16
+	ids    []Id
+}
+
+type SimilarityIndexScore[Id any] struct {
+	count uint16
+}
+
+type SimilarityIndexAOS[Id any] struct {
+	counts []uint16
+	ids    []Id
 }
 
 func (index *BookSearchIndex) findSimilar(
@@ -151,24 +156,6 @@ func (index *BookSearchIndex) findSimilar(
 type BookEntries struct {
 	books  BookEntrySlice
 	titles *BookSearchIndex
-}
-
-func NewTitleIndex(books BookEntrySlice) (index *BookSearchIndex) {
-	index = NewBookSearchIndex(len(books))
-
-	for id, book := range books {
-		entryId := BookEntryId(id)
-		for _, word := range splitTitle(book.Title) {
-			index.numWords[entryId] = len(word)
-
-			if ids, found := index.words[word]; found {
-				index.words[word] = append(ids, entryId)
-			} else {
-				index.words[word] = []BookEntryId{entryId}
-			}
-		}
-	}
-	return
 }
 
 func NewBookEntries(
