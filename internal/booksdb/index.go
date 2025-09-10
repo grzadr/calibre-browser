@@ -14,6 +14,18 @@ func splitTitle(title string) []Word {
 	))
 }
 
+type BookSearchIndex struct {
+	words    map[Word][]BookEntryId
+	numWords map[BookEntryId]int
+}
+
+func NewBookSearchIndex(capacity int) *BookSearchIndex {
+	return &BookSearchIndex{
+		words:    make(map[Word][]BookEntryId, defaultIndexWordsCapacity),
+		numWords: make(map[BookEntryId]int, capacity),
+	}
+}
+
 func NewTitleIndex(books BookEntrySlice) (index *BookSearchIndex) {
 	index = NewBookSearchIndex(len(books))
 

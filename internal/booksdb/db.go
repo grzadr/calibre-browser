@@ -73,30 +73,22 @@ func normalizeWordSlice(words []string) (lowered []Word) {
 	return
 }
 
-type BookSearchIndex struct {
-	words    map[Word][]BookEntryId
-	numWords map[BookEntryId]int
-}
-
-func NewBookSearchIndex(capacity int) *BookSearchIndex {
-	return &BookSearchIndex{
-		words:    make(map[Word][]BookEntryId, defaultIndexWordsCapacity),
-		numWords: make(map[BookEntryId]int, capacity),
-	}
-}
-
-type SimilarityIndexSOA[Id any] struct {
-	counts []uint16
-	ids    []Id
+type SimilarityIndexSOA[Id comparable] struct {
+	counts  []uint16
+	totals  []uint16
+	ids     []Id
+	visited map[Id]int
 }
 
 type SimilarityIndexScore[Id any] struct {
+	id    Id
 	count uint16
+	total uint16
 }
 
-type SimilarityIndexAOS[Id any] struct {
-	counts []uint16
-	ids    []Id
+type SimilarityIndexAOS[Id comparable] struct {
+	scores  []SimilarityIndexScore[Id]
+	visited map[Id]int
 }
 
 func (index *BookSearchIndex) findSimilar(
