@@ -1,6 +1,7 @@
 package booksdb
 
 import (
+	"cmp"
 	"slices"
 	"strings"
 )
@@ -43,4 +44,58 @@ func NewTitleIndex(books BookEntrySlice) (index *BookSearchIndex) {
 	}
 
 	return
+}
+
+func (index *BookSearchIndex) findSimilar(
+	words []Word,
+) []BookEntryId {
+	countedWords := make([]int, 0, defaultJaccardCapacity)
+	totalWords := make([]float32, 0, defaultJaccardCapacity)
+	countedIds := make([]BookEntryId, 0, defaultJaccardCapacity)
+	indices := make([]int, 0, defaultJaccardCapacity)
+	visitedIds := make(map[BookEntryId]int)
+
+	lastIndex := 0
+
+	for _, word := range words {
+		ids, found := index.words[word]
+		if !found {
+			continue
+		}
+		for _, bookId := range ids {
+			i, found := visitedIds[bookId]
+			if !found {
+				i = lastIndex
+				lastIndex++
+				countedWords = append(countedWords, 1)
+				totalWords = append(totalWords, float32(index.numWords[bookId]))
+				countedIds = append(countedIds, bookId)
+				indices = append(indices, i)
+				visitedIds[bookId] = i
+			} else {
+				countedWords[i]++
+			}
+		}
+	}
+
+	scores := make([]float32, len(countedIds))
+	querySize := float32(len(words))
+
+	for i := range countedIds {
+		counted := float32(countedWords[i])
+
+		scores[i] = counted / (querySize + totalWords[i] - counted)
+	}
+
+	slices.SortFunc(indices, func(left, right int) int {
+		return cmp.Compare(scores[right], scores[left])
+	})
+
+	found := make([]BookEntryId, len(scores))
+
+	for i, id := range indices {
+		found[i] = countedIds[id]
+	}
+
+	return found
 }
