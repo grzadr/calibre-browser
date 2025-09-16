@@ -27,12 +27,13 @@ func NewBookSearchIndex(capacity int) *BookSearchIndex {
 	}
 }
 
-func NewTitleIndex(books BookEntrySlice) (index *BookSearchIndex) {
-	index = NewBookSearchIndex(len(books))
+// func NewTitleIndex(books BookEntrySlice) (index *BookSearchIndex) {.
+func NewTitleIndex(titles []string) (index *BookSearchIndex) {
+	index = NewBookSearchIndex(len(titles))
 
-	for id, book := range books {
+	for id, title := range titles {
 		entryId := BookEntryId(id)
-		for _, word := range splitTitle(book.Title) {
+		for _, word := range splitTitle(title) {
 			index.numWords[entryId] = len(word)
 
 			if ids, found := index.words[word]; found {
@@ -98,4 +99,10 @@ func (index *BookSearchIndex) findSimilar(
 	}
 
 	return found
+}
+
+func (index *BookSearchIndex) findSimilarV2(
+	words []Word,
+) []BookEntryId {
+	return nil
 }

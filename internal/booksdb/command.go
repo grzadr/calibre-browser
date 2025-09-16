@@ -30,7 +30,7 @@ func SearchTitleCommand(
 	index *BookEntries,
 	args []string,
 ) (entries BookEntrySlice, err error) {
-	found := index.titles.findSimilar(normalizeWordSlice(args))
+	found := index.titlesIndex.findSimilar(normalizeWordSlice(args))
 	entries = make(BookEntrySlice, len(found))
 
 	for i, bookId := range found {

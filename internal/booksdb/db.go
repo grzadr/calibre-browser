@@ -90,8 +90,8 @@ type SimilarityIndexAOS[Id comparable] struct {
 }
 
 type BookEntries struct {
-	books  BookEntrySlice
-	titles *BookSearchIndex
+	books       BookEntrySlice
+	titlesIndex *BookSearchIndex
 }
 
 func NewBookEntries(
@@ -105,7 +105,13 @@ func NewBookEntries(
 		return nil, fmt.Errorf("error listing books %q: %w", repo.dbPath, err)
 	}
 
-	entries.titles = NewTitleIndex(entries.books)
+	titles := make([]string, len(entries.books))
+
+	for id, entry := range entries.books {
+		titles[id] = entry.Title
+	}
+
+	entries.titlesIndex = NewTitleIndex(titles)
 
 	return entries, nil
 }
