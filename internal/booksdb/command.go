@@ -26,20 +26,20 @@ func UnknownCommand(index *BookEntries, args []string) (BookEntrySlice, error) {
 	return nil, fmt.Errorf("unknown command")
 }
 
-func SearchTitleCommand(
-	index *BookEntries,
+func SelectEntriesByTitleCommand(
+	entries *BookEntries,
 	args []string,
-) (entries BookEntrySlice, err error) {
-	found := index.titlesIndex.findSimilar(normalizeWordSlice(args))
-	entries = make(BookEntrySlice, len(found))
+) (selected BookEntrySlice, err error) {
+	found := entries.titlesIndex.findSimilar(normalizeWordSlice(args))
+	selected = make(BookEntrySlice, len(found))
 
 	for i, bookId := range found {
-		entries[i] = index.books[bookId]
+		selected[i] = entries.books[bookId]
 	}
 
-	return entries, nil
+	return selected, nil
 }
 
 var CommandMap = [...]CommandFunc{
-	UnknownCommand, SearchTitleCommand,
+	UnknownCommand, SelectEntriesByTitleCommand,
 }

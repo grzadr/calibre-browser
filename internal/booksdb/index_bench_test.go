@@ -31,7 +31,7 @@ func generateTitles(numTitles, maxTitleLength int) []string {
 		numWords := rand.Intn(maxTitleLength) + 1
 		words := make([]string, numWords)
 
-		for j := 0; j < numWords; j++ {
+		for j := range numWords {
 			words[j] = testWords[rand.Intn(lenTestWords)]
 		}
 
@@ -51,33 +51,13 @@ func generateQueryWords(numWords int) []Word {
 	return words
 }
 
-func BenchmarkFindSimilar(b *testing.B) {
-	const (
-		numBooks       = 10000
-		maxTitleLength = 12
-		querySize      = 5
-	)
-
-	titles := generateTitles(numBooks, maxTitleLength)
-	index := NewTitleIndex(titles)
-	query := generateQueryWords(querySize)
-
-	var result []BookEntryId
-
-	for b.Loop() {
-		result = index.findSimilar(query)
-	}
-
-	_ = result
-}
-
 func BenchmarkFindSimilarScaling(b *testing.B) {
 	algorithms := []struct {
 		name string
 		fn   func(*BookSearchIndex, []Word) []BookEntryId
 	}{
-		{"V1", (*BookSearchIndex).findSimilar},
-		{"V2", (*BookSearchIndex).findSimilarV2},
+		// {"V1", (*BookSearchIndex).findSimilarV1},
+		{"Base", (*BookSearchIndex).findSimilar},
 	}
 
 	testCases := []struct {
@@ -86,10 +66,18 @@ func BenchmarkFindSimilarScaling(b *testing.B) {
 		maxTitleLength int
 		querySize      int
 	}{
-		{"Small_100books_5query", 100, 8, 5},
-		{"Medium_1000books_10query", 1000, 10, 10},
-		{"Large_10000books_15query", 10000, 12, 15},
-		{"XLarge_50000books_20query", 50000, 15, 20},
+		{"Small_100books", 100, 12, 6},
+		{"Medium_1000books", 1000, 12, 6},
+		{"Large_10000books", 10000, 12, 6},
+		{"XLarge_50000books", 50000, 12, 6},
+		{"Large_10000books_3query", 10000, 12, 3},
+		{"Large_10000books_6query", 10000, 12, 6},
+		{"Large_10000books_9query", 10000, 12, 9},
+		{"Large_10000books_12query", 10000, 12, 12},
+		{"Large_10000books_3title", 10000, 3, 6},
+		{"Large_10000books_6title", 10000, 6, 6},
+		{"Large_10000books_9title", 10000, 9, 6},
+		{"Large_10000books_12title", 10000, 12, 6},
 	}
 
 	for _, alg := range algorithms {

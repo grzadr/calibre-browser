@@ -18,11 +18,6 @@ type (
 	BookEntryId    uint16
 )
 
-const (
-	defaultIndexWordsCapacity = 1000 * 1024 // TODO Adjust for actual usage
-	defaultJaccardCapacity    = 64
-)
-
 type BookRepository struct {
 	dbPath string
 	*model.Queries
@@ -69,24 +64,6 @@ func normalizeWordSlice(words []string) (lowered []Word) {
 	}
 
 	return
-}
-
-type SimilarityIndexSOA[Id comparable] struct {
-	counts  []uint16
-	totals  []uint16
-	ids     []Id
-	visited map[Id]int
-}
-
-type SimilarityIndexScore[Id any] struct {
-	id    Id
-	count uint16
-	total uint16
-}
-
-type SimilarityIndexAOS[Id comparable] struct {
-	scores  []SimilarityIndexScore[Id]
-	visited map[Id]int
 }
 
 type BookEntries struct {
