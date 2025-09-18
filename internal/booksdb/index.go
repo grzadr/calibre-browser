@@ -28,8 +28,7 @@ type BookSearchIndex struct {
 
 func NewBookSearchIndex(capacity int) *BookSearchIndex {
 	return &BookSearchIndex{
-		words: make(map[Word][]BookEntryId, defaultIndexWordsCapacity),
-		// numWords: make(map[BookEntryId]Count, capacity),
+		words:    make(map[Word][]BookEntryId, defaultIndexWordsCapacity),
 		numWords: make([]Count, capacity),
 	}
 }
