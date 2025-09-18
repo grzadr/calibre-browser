@@ -7,7 +7,10 @@ import (
 )
 
 const (
-	defaultIndexWordsCapacity = 1000 * 1024 // TODO Adjust for actual usage
+	defaultIndexWordsCapacity     = 1000 * 1024
+	defaultMaxWordCounterCapacity = 16384
+	defaultMinWordCounterCapacity = 64
+	defaultCapacityDivisor        = 4
 )
 
 type Count uint8
@@ -65,7 +68,10 @@ type SimilarityIndexScore struct {
 func (index *BookSearchIndex) findSimilar(
 	words []Word,
 ) []BookEntryId {
-	capacity := min(max(64, index.size()/4), 16384)
+	capacity := min(
+		max(defaultMinWordCounterCapacity, index.size()/defaultCapacityDivisor),
+		defaultMaxWordCounterCapacity,
+	)
 
 	counts := make(map[BookEntryId]Count, capacity)
 

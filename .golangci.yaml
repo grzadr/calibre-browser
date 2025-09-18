@@ -41,6 +41,7 @@ linters:
           allow:
             - $gostd
             - github.com/grzadr/calibre-browser/
+            - modernc.org
   exclusions:
     rules:
       - text: '(slog|log)\.\w+'

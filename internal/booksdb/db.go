@@ -12,6 +12,8 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+const defaultBuilderGrowFactor = 2
+
 type (
 	Word           string
 	BookEntrySlice []model.BookEntryRow
@@ -19,8 +21,9 @@ type (
 )
 
 type BookRepository struct {
-	dbPath string
 	*model.Queries
+
+	dbPath string
 }
 
 func NewBookRepository(
@@ -44,7 +47,7 @@ var diacriticalMap = map[rune]string{
 func normalizeWord(word string) Word {
 	var result strings.Builder
 
-	result.Grow(len(word) * 2)
+	result.Grow(len(word) * defaultBuilderGrowFactor)
 
 	for _, r := range word {
 		lowered := unicode.ToLower(r)

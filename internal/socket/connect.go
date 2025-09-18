@@ -12,8 +12,9 @@ const (
 )
 
 type SocketListener struct {
-	socketPath string
 	net.Listener
+
+	socketPath string
 }
 
 func (l *SocketListener) Close() error {
