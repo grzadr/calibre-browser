@@ -54,6 +54,7 @@ func normalizeWord(word string) Word {
 			result.WriteRune(lowered)
 		}
 	}
+
 	return Word(result.String())
 }
 
@@ -76,6 +77,7 @@ func NewBookEntries(
 	ctx context.Context,
 ) (*BookEntries, error) {
 	entries := &BookEntries{}
+
 	var err error
 
 	if entries.books, err = repo.BookEntry(ctx); err != nil {
@@ -107,6 +109,7 @@ func RefreshBookEntries(repo *BookRepository, ctx context.Context) error {
 			err,
 		)
 	}
+
 	index.Store(entries)
 
 	return nil

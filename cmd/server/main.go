@@ -44,6 +44,7 @@ func acceptClientConnection(ctx context.Context,
 					continue loop
 				case <-ctx.Done():
 				}
+
 				return
 			}
 
@@ -51,10 +52,12 @@ func acceptClientConnection(ctx context.Context,
 			case connChan <- conn:
 			case <-ctx.Done():
 				conn.Close()
+
 				return
 			}
 		}
 	}()
+
 	return connChan
 }
 
@@ -72,6 +75,7 @@ func handleClientConnection(
 	conn.SetDeadline(time.Now().Add(defaultConnTimeout))
 
 	reader := bufio.NewReader(conn)
+
 	writer := bufio.NewWriter(conn)
 	defer writer.Flush()
 
@@ -84,6 +88,7 @@ func handleClientConnection(
 
 		// Handle client communication with timeout
 		conn.SetReadDeadline(time.Now().Add(defaultConnReadTimeout))
+
 		message, err := reader.ReadString('\n')
 		if err != nil {
 			// Check if error is due to shutdown or genuine network issue
@@ -91,6 +96,7 @@ func handleClientConnection(
 				continue // Allow shutdown check in next iteration
 			}
 			errChan <- err
+
 			return
 		}
 
@@ -123,6 +129,7 @@ func handleErrors(
 	_ context.CancelFunc,
 ) chan error {
 	errChan := make(chan error, defaultErrChanCapacity)
+
 	go func() {
 		// defer close(errChan)
 		for {
@@ -195,11 +202,13 @@ func run(
 	go waitClientConnection(ctx, &listener, &wg, errChan)
 
 	<-ctx.Done()
+
 	return nil
 }
 
 func main() {
 	log.Println("initializing context")
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	conf, err := arguments.ParseArgsServer(os.Args)

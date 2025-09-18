@@ -38,6 +38,7 @@ func NewTitleIndex(titles []string) (index *BookSearchIndex) {
 
 	for id, title := range titles {
 		entryId := BookEntryId(id)
+
 		for _, word := range splitTitle(title) {
 			index.numWords[entryId] = Count(len(word))
 

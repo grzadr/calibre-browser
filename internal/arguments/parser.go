@@ -29,6 +29,7 @@ func validateDbPath(filename string) error {
 	}
 
 	defer file.Close()
+
 	return nil
 }
 
@@ -37,6 +38,7 @@ func ParseArgsServer(args []string) (conf Config, err error) {
 
 	cmd := args[0]
 	args = args[1:]
+
 	if len(args) < requiredArgsSize {
 		return conf, fmt.Errorf(
 			"required %d arguments\n%s",
@@ -58,6 +60,7 @@ func ParseArgsClient(args []string) (conf Config, err error) {
 
 	cmd := args[0]
 	args = args[1:]
+
 	if len(args) < requiredArgsSize {
 		return conf, fmt.Errorf(
 			"required %d arguments\n%s",

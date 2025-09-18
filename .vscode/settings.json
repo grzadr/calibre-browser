@@ -25,7 +25,7 @@
         ".secrets": "shellscript"
     },
     // Go setting
-    "go.lintTool": "golangci-lint-v2",
+    "go.lintTool": "golangci-lint",
     "go.lintFlags": [
         "--path-mode=abs",
         "--fast-only"
@@ -33,7 +33,7 @@
     "go.formatTool": "custom",
     "go.lintOnSave": "workspace",
     "go.alternateTools": {
-        "customFormatter": "golangci-lint-v2",
+        "customFormatter": "golangci-lint",
     },
     "go.formatFlags": [
         "fmt",

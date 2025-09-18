@@ -9,29 +9,30 @@ issues:
   uniq-by-line: true
   whole-files: false
 linters:
-  enable:
-    - bodyclose
-    - exhaustive
-    - goconst
-    - godot
-    - gomoddirectives
-    - goprintffuncname
-    - gosec
-    - misspell
-    - nakedret
-    - nestif
-    - nilerr
-    - noctx
-    - nolintlint
-    - prealloc
-    - revive
-    - rowserrcheck
-    - sqlclosecheck
-    - tparallel
-    - unconvert
-    - unparam
-    - whitespace
-    - wrapcheck
+  default: all
+  # enable:
+  #   - bodyclose
+  #   - exhaustive
+  #   - goconst
+  #   - godot
+  #   - gomoddirectives
+  #   - goprintffuncname
+  #   - gosec
+  #   - misspell
+  #   - nakedret
+  #   - nestif
+  #   - nilerr
+  #   - noctx
+  #   - nolintlint
+  #   - prealloc
+  #   - revive
+  #   - rowserrcheck
+  #   - sqlclosecheck
+  #   - tparallel
+  #   - unconvert
+  #   - unparam
+  #   - whitespace
+  #   - wrapcheck
 
   settings:
     depguard:
@@ -39,7 +40,7 @@ linters:
         main:
           allow:
             - $gostd
-            - github.com/codecrafters-io/interpreter-starter-go/
+            - github.com/grzadr/calibre-browser/
   exclusions:
     rules:
       - text: '(slog|log)\.\w+'

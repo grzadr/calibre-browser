@@ -48,6 +48,7 @@ func CreateSocketListener(
 	if err = os.Chmod(socketPath, readOnlyPerm); err != nil {
 		_ = listener.Close()
 		_ = os.Remove(socketPath)
+
 		return listener, fmt.Errorf(
 			"failed to set socket %q permissions: %w",
 			socketPath,

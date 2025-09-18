@@ -15,6 +15,7 @@ func run(conf arguments.Config,
 	cancel context.CancelFunc,
 ) error {
 	log.Printf("running client with config:\n%+v\n", conf)
+
 	if err := booksdb.PopulateBooksRepository(conf.DbPath, ctx); err != nil {
 		return fmt.Errorf("error initializng database %q: %w", conf.DbPath, err)
 	}
@@ -27,6 +28,7 @@ func run(conf arguments.Config,
 	if err != nil {
 		return fmt.Errorf("error running command %q: %w", conf.Cmd, err)
 	}
+
 	for i, entry := range entries {
 		log.Printf("%d: %+v", i, entry)
 	}
@@ -39,6 +41,7 @@ func run(conf arguments.Config,
 func main() {
 	log.Println("running client")
 	log.Println("initializing context")
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	conf, err := arguments.ParseArgsClient(os.Args)
