@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	requiredArgsSize = 1
-	argsDbPath       = 0
-	argsCmd          = 1
+	requiredClientArgsSize = 2
+	requiredServerArgsSize = 1
+	argsDbPath             = 0
+	argsClientCmd          = 1
 )
 
 type Config struct {
@@ -20,6 +21,10 @@ type Config struct {
 
 func usage(cmd string) string {
 	return fmt.Sprintf("%s <db filename>", cmd)
+}
+
+func usageCLient(cmd string) string {
+	return fmt.Sprintf("%s <db filename/address> <cmd> ...", cmd)
 }
 
 func validateDbPath(filename string) error {
@@ -39,16 +44,16 @@ func ParseArgsServer(args []string) (conf Config, err error) {
 	cmd := args[0]
 	args = args[1:]
 
-	if len(args) < requiredArgsSize {
+	if len(args) < requiredServerArgsSize {
 		return conf, fmt.Errorf(
 			"required %d arguments\n%s",
-			requiredArgsSize,
+			requiredServerArgsSize,
 			usage(cmd),
 		)
 	}
 
 	conf.DbPath = args[argsDbPath]
-	conf.Args = args[requiredArgsSize+1:]
+	conf.Args = args[requiredServerArgsSize+1:]
 
 	err = validateDbPath(conf.DbPath)
 
@@ -61,17 +66,17 @@ func ParseArgsClient(args []string) (conf Config, err error) {
 	cmd := args[0]
 	args = args[1:]
 
-	if len(args) < requiredArgsSize {
+	if len(args) < requiredClientArgsSize {
 		return conf, fmt.Errorf(
 			"required %d arguments\n%s",
-			requiredArgsSize,
-			usage(cmd),
+			requiredClientArgsSize,
+			usageCLient(cmd),
 		)
 	}
 
 	conf.DbPath = args[argsDbPath]
-	conf.Cmd = args[argsCmd]
-	conf.Args = args[argsCmd+1:]
+	conf.Cmd = args[argsClientCmd]
+	conf.Args = args[argsClientCmd+1:]
 
 	err = validateDbPath(conf.DbPath)
 
