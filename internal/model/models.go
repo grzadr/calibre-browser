@@ -10,18 +10,18 @@ import (
 )
 
 type Book struct {
-	ID           uint16
-	Title        string
-	Sort         sql.NullString
-	Timestamp    time.Time
-	Pubdate      time.Time
-	SeriesIndex  float64
-	AuthorSort   string
-	Isbn         string
-	Lccn         string
-	Path         string
-	Flags        int64
-	Uuid         sql.NullString
-	HasCover     sql.NullBool
-	LastModified time.Time
+	ID           uint16         `json:"id"`
+	Title        string         `json:"title"`
+	Sort         sql.NullString `json:"sort"`
+	Timestamp    time.Time      `json:"timestamp"`
+	Pubdate      time.Time      `json:"pubdate"`
+	SeriesIndex  float64        `json:"series_index"`
+	AuthorSort   string         `json:"author_sort"`
+	Isbn         string         `json:"isbn"`
+	Lccn         string         `json:"lccn"`
+	Path         string         `json:"path"`
+	Flags        int64          `json:"flags"`
+	Uuid         sql.NullString `json:"uuid"`
+	HasCover     sql.NullBool   `json:"has_cover"`
+	LastModified time.Time      `json:"last_modified"`
 }

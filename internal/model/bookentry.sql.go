@@ -22,12 +22,12 @@ FROM books
 `
 
 type BookEntryRow struct {
-	ID         uint16
-	Title      string
-	Authors    string
-	AddedAt    time.Time
-	ModifiedAt time.Time
-	Path       string
+	ID         uint16    `json:"id"`
+	Title      string    `json:"title"`
+	Authors    string    `json:"authors"`
+	AddedAt    time.Time `json:"added_at"`
+	ModifiedAt time.Time `json:"modified_at"`
+	Path       string    `json:"path"`
 }
 
 func (q *Queries) BookEntry(ctx context.Context) ([]BookEntryRow, error) {

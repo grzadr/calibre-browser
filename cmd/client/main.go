@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -29,9 +30,12 @@ func run(conf arguments.Config,
 		return fmt.Errorf("error running command %q: %w", conf.Cmd, err)
 	}
 
-	for i, entry := range entries {
-		log.Printf("%d: %+v", i, entry)
+	json, err := json.MarshalIndent(entries, "", "  ")
+	if err != nil {
+		return fmt.Errorf("error marshalling entries %q: %w", conf.Cmd, err)
 	}
+
+	os.Stdout.Write(json)
 
 	log.Println("completed client run")
 
