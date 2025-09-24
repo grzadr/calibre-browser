@@ -112,6 +112,7 @@ func waitClientConnection(
 	wg *sync.WaitGroup,
 	errChan chan<- error,
 ) {
+	defer listener.Close()
 	connChan := acceptClientConnection(ctx, listener, errChan)
 
 	for {
@@ -179,6 +180,29 @@ func setupGracefulShutdown(cancel context.CancelFunc, wg *sync.WaitGroup) {
 	}()
 }
 
+func createListeners() ([]net.Listener, error) {
+	funcs := []func() (net.Listener, error){
+		func() (net.Listener, error) {
+			l, r := socket.CreateSocketListener(socket.DefaultSocketPath)
+
+			return &l, r
+		},
+	}
+
+	listeners := make([]net.Listener, len(funcs))
+
+	for i, fn := range funcs {
+		listener, err := fn()
+		if err != nil {
+			return listeners[:i], err
+		}
+
+		listeners[i] = listener
+	}
+
+	return listeners, nil
+}
+
 func run(
 	conf arguments.Config,
 	ctx context.Context,
@@ -187,10 +211,16 @@ func run(
 	log.Printf("running server with config:\n%+v\n", conf)
 	booksdb.PopulateBooksRepository(conf.DbPath, ctx)
 
-	listener, err := socket.CreateSocketListener(socket.DefaultSocketPath)
+	// listener, err := socket.CreateSocketListener(socket.DefaultSocketPath)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer listener.Close()
+
+	listeners, err := createListeners()
 	if err != nil {
+		panic(err)
 	}
-	defer listener.Close()
 
 	errChan := handleErrors(ctx, cancel)
 	defer close(errChan)
@@ -199,7 +229,9 @@ func run(
 
 	setupGracefulShutdown(cancel, &wg)
 
-	go waitClientConnection(ctx, &listener, &wg, errChan)
+	for _, l := range listeners {
+		go waitClientConnection(ctx, l, &wg, errChan)
+	}
 
 	<-ctx.Done()
 

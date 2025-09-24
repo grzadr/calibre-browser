@@ -19,7 +19,7 @@ type Config struct {
 	Args   []string
 }
 
-func usage(cmd string) string {
+func usageServer(cmd string) string {
 	return fmt.Sprintf("%s <db filename>", cmd)
 }
 
@@ -48,7 +48,7 @@ func ParseArgsServer(args []string) (conf Config, err error) {
 		return conf, fmt.Errorf(
 			"required %d arguments\n%s",
 			requiredServerArgsSize,
-			usage(cmd),
+			usageServer(cmd),
 		)
 	}
 
