@@ -67,7 +67,7 @@ func normalizeWordSlice(words []string) (lowered []Word) {
 		lowered[i] = normalizeWord(word)
 	}
 
-	return
+	return lowered
 }
 
 type BookEntries struct {
@@ -130,7 +130,7 @@ func PopulateBooksRepository(dbPath string, ctx context.Context) (err error) {
 
 	err = RefreshBookEntries(repository, ctx)
 
-	return
+	return err
 }
 
 func ExecuteCommand(

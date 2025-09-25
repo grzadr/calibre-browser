@@ -101,6 +101,7 @@ func handleClientConnection(
 		}
 
 		response := fmt.Sprintf("Server echo: %s", message)
+		log.Println(response)
 		writer.WriteString(response)
 		writer.Flush()
 	}

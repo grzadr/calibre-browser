@@ -53,7 +53,7 @@ func NewTitleIndex(titles []string) (index *BookSearchIndex) {
 		}
 	}
 
-	return
+	return index
 }
 
 func (index *BookSearchIndex) size() int {

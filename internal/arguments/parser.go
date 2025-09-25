@@ -57,7 +57,7 @@ func ParseArgsServer(args []string) (conf Config, err error) {
 
 	err = validateDbPath(conf.DbPath)
 
-	return
+	return conf, err
 }
 
 func ParseArgsClient(args []string) (conf Config, err error) {
@@ -80,5 +80,5 @@ func ParseArgsClient(args []string) (conf Config, err error) {
 
 	err = validateDbPath(conf.DbPath)
 
-	return
+	return conf, err
 }

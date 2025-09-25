@@ -13,7 +13,7 @@ import (
 
 func run(conf arguments.Config,
 	ctx context.Context,
-	cancel context.CancelFunc,
+	_ context.CancelFunc,
 ) error {
 	log.Printf("running client with config:\n%+v\n", conf)
 
