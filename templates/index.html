@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Active search demonstration using HTMX and Go">
+    <title>Active Search with HTMX</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://unpkg.com/htmx.org@2.0.3"
+        integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <main class="container">
+        <header>
+            <h1>Book Search</h1>
+            <p class="subtitle">Find your next read with active search</p>
+        </header>
+
+        <section class="search-section" role="search">
+            <h2>
+                Search Books
+                <span class="htmx-indicator" aria-hidden="true">
+                    <span class="spinner"></span>
+                    <span class="sr-only">Searching...</span>
+                </span>
+            </h2>
+
+            <input class="search-input" type="search" name="search" placeholder="Start typing to search books..."
+                aria-label="Search books" hx-post="/search"
+                hx-trigger="input changed delay:500ms, keyup[key=='Enter'], load" hx-target="#search-results"
+                hx-indicator=".htmx-indicator">
+        </section>
+
+        <section class="results-section">
+            <h2 class="sr-only">Search Results</h2>
+            <table class="results-table" role="table">
+                <caption class="sr-only">Book search results</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Title</th>
+                        <th scope="col">Author</th>
+                        <th scope="col">Year</th>
+                        <th scope="col">ISBN</th>
+                    </tr>
+                </thead>
+                <tbody id="search-results">
+                    <tr>
+                        <td colspan="4" class="empty-state">
+                            Start typing to search for books...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+
+</html>

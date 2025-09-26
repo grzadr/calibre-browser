@@ -1,0 +1,13 @@
+<!-- templates/search-results.html -->
+{{range .}}
+<tr>
+    <td>{{.Title}}</td>
+    <td>{{.Author}}</td>
+    <td>{{.Year}}</td>
+    <td>{{.ISBN}}</td>
+</tr>
+{{else}}
+<tr>
+    <td colspan="4" class="empty-state">No books found</td>
+</tr>
+{{end}}
