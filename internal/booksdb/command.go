@@ -2,6 +2,7 @@ package booksdb
 
 import (
 	"fmt"
+	"log"
 )
 
 type Command byte
@@ -30,6 +31,7 @@ func SelectEntriesByTitleCommand(
 	entries *BookEntries,
 	args []string,
 ) (selected BookEntrySlice, err error) {
+	log.Printf("performing title search for %+v", args)
 	found := entries.titlesIndex.findSimilar(normalizeWordSlice(args))
 	selected = make(BookEntrySlice, len(found))
 
