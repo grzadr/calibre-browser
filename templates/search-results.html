@@ -1,10 +1,9 @@
-<!-- templates/search-results.html -->
 {{range .}}
 <tr>
     <td>{{.Title}}</td>
-    <td>{{.Author}}</td>
-    <td>{{.Year}}</td>
-    <td>{{.ISBN}}</td>
+    <td>{{.Authors}}</td>
+    <td>{{.AddedAt.Year}}</td>
+    <td>{{.Path}}</td>
 </tr>
 {{else}}
 <tr>

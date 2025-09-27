@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"embed"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -39,11 +40,15 @@ func createSearchHandler() http.HandlerFunc {
 		args := strings.Fields(query)
 		results, _ := booksdb.SelectEntriesByTitleCommand(entries, args)
 
+		log.Println("search completed")
+
 		// 4. Execute template with results
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 		// THIS IS WHERE WE USE tmpl! ↓↓↓
 		err := search.Execute(w, results)
+
+		log.Println("search template executed")
 		//     ^^^^^^^^^^^^^
 		// Converts Go data → HTML using template
 		if err != nil {
@@ -112,9 +117,14 @@ func setupRoutes() *http.ServeMux {
 	mux.HandleFunc("GET /", createIndexHandler())
 	mux.HandleFunc("POST /search", createSearchHandler())
 
-	// Static files with embedded FS
+	// FIX: Use fs.Sub to serve from the static subdirectory
+	staticFS, err := fs.Sub(staticFiles, "static")
+	if err != nil {
+		log.Fatal("Failed to create static sub-filesystem:", err)
+	}
+
 	mux.Handle("GET /static/", http.StripPrefix("/static/",
-		http.FileServerFS(staticFiles)))
+		http.FileServerFS(staticFS)))
 
 	return mux
 }
