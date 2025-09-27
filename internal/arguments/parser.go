@@ -53,7 +53,10 @@ func ParseArgsServer(args []string) (conf Config, err error) {
 	}
 
 	conf.DbPath = args[argsDbPath]
-	conf.Args = args[requiredServerArgsSize+1:]
+
+	if len(args) > requiredServerArgsSize {
+		conf.Args = args[requiredServerArgsSize+1:]
+	}
 
 	err = validateDbPath(conf.DbPath)
 

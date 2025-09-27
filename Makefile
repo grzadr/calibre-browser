@@ -1,6 +1,6 @@
 BIN_DIR = bin
 
-.PHONY: all server client sqlc
+.PHONY: all server client sqlc web
 
 sqlc:
 	sqlc generate
@@ -10,5 +10,8 @@ server:
 
 client:
 	go build -o $(BIN_DIR)/$@ ./cmd/$@
+
+web:
+	go build -o $(BIN_DIR)/$@ .
 
 all: sqlc server client

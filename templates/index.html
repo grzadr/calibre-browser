@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Active search demonstration using HTMX and Go">
-    <title>Active Search with HTMX</title>
+    <title>{{.Title}} - Active Search with HTMX</title>
     <link rel="stylesheet" href="/static/styles.css">
     <script src="https://unpkg.com/htmx.org@2.0.3"
         integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq"
@@ -15,8 +15,8 @@
 <body>
     <main class="container">
         <header>
-            <h1>Book Search</h1>
-            <p class="subtitle">Find your next read with active search</p>
+            <h1>{{.Title}}</h1>
+            <p class="subtitle">Search across {{.BookCount}} books in our collection</p>
         </header>
 
         <section class="search-section" role="search">
@@ -56,6 +56,12 @@
             </table>
         </section>
     </main>
+
+    {{if .Generated}}
+    <footer class="page-footer">
+        <p>Page cached at: {{.Generated.Format "15:04:05"}} • {{.BookCount}} books available</p>
+    </footer>
+    {{end}}
 </body>
 
 </html>

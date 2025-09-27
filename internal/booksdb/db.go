@@ -98,6 +98,10 @@ func NewBookEntries(
 	return entries, nil
 }
 
+func (b *BookEntries) NumBooks() int {
+	return len(b.books)
+}
+
 var (
 	repository *BookRepository
 	index      atomic.Pointer[BookEntries]
