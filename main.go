@@ -130,7 +130,8 @@ func setupRoutes() *http.ServeMux {
 }
 
 func main() {
-	ctx, _ := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	conf, err := arguments.ParseArgsServer(os.Args)
 	if err != nil {
@@ -138,7 +139,7 @@ func main() {
 	}
 
 	if err := booksdb.PopulateBooksRepository(conf.DbPath, ctx); err != nil {
-		log.Fatalf("error initializng database %q: %w\n", conf.DbPath, err)
+		log.Fatalf("error initializng database %q: %s\n", conf.DbPath, err)
 	}
 
 	mux := setupRoutes()
