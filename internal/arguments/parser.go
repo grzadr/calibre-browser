@@ -1,30 +1,14 @@
 package arguments
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
 )
 
-const (
-	requiredClientArgsSize = 2
-	requiredServerArgsSize = 1
-	argsDbPath             = 0
-	argsClientCmd          = 1
-)
-
 type Config struct {
 	DbPath string
-	Cmd    string
-	Args   []string
-}
-
-func usageServer(cmd string) string {
-	return fmt.Sprintf("%s <db filename>", cmd)
-}
-
-func usageCLient(cmd string) string {
-	return fmt.Sprintf("%s <db filename/address> <cmd> ...", cmd)
 }
 
 func validateDbPath(filename string) error {
@@ -41,47 +25,30 @@ func validateDbPath(filename string) error {
 func ParseArgsServer(args []string) (conf Config, err error) {
 	log.Printf("parsing server arguments: %+v", args)
 
-	cmd := args[0]
-	args = args[1:]
-
-	if len(args) < requiredServerArgsSize {
-		return conf, fmt.Errorf(
-			"required %d arguments\n%s",
-			requiredServerArgsSize,
-			usageServer(cmd),
-		)
+	// Create a new FlagSet for parsing
+	fs := flag.NewFlagSet(args[0], flag.ContinueOnError)
+	fs.Usage = func() {
+		fmt.Fprintf(fs.Output(), "Usage: %s <db filename>\n", args[0])
+		fmt.Fprintf(fs.Output(), "\nArguments:\n")
+		fmt.Fprintf(fs.Output(), "  db filename    Path to the Calibre database file\n")
 	}
 
-	conf.DbPath = args[argsDbPath]
-
-	if len(args) > requiredServerArgsSize {
-		conf.Args = args[requiredServerArgsSize+1:]
+	// Parse flags (currently none, but this allows for future additions)
+	if err := fs.Parse(args[1:]); err != nil {
+		return conf, err
 	}
 
-	err = validateDbPath(conf.DbPath)
-
-	return conf, err
-}
-
-func ParseArgsClient(args []string) (conf Config, err error) {
-	log.Printf("parsing client arguments: %+v", args)
-
-	cmd := args[0]
-	args = args[1:]
-
-	if len(args) < requiredClientArgsSize {
-		return conf, fmt.Errorf(
-			"required %d arguments\n%s",
-			requiredClientArgsSize,
-			usageCLient(cmd),
-		)
+	// Get the positional argument (database path)
+	if fs.NArg() < 1 {
+		fs.Usage()
+		return conf, fmt.Errorf("missing required argument: database path")
 	}
 
-	conf.DbPath = args[argsDbPath]
-	conf.Cmd = args[argsClientCmd]
-	conf.Args = args[argsClientCmd+1:]
+	conf.DbPath = fs.Arg(0)
 
-	err = validateDbPath(conf.DbPath)
+	if err := validateDbPath(conf.DbPath); err != nil {
+		return conf, err
+	}
 
-	return conf, err
+	return conf, nil
 }
