@@ -7,8 +7,24 @@ import (
 	"os"
 )
 
+type PortValue struct {
+	Port *string
+}
+
+func (v PortValue) String() string {
+	if v.Port == nil {
+		return ""
+	}
+
+	return *v.Port
+}
+
+func (v PortValue) Set(s string) error {
+}
+
 type Config struct {
 	DbPath string
+	Port   int
 }
 
 func validateDbPath(filename string) error {
@@ -30,7 +46,10 @@ func ParseArgsServer(args []string) (conf Config, err error) {
 	fs.Usage = func() {
 		fmt.Fprintf(fs.Output(), "Usage: %s <db filename>\n", args[0])
 		fmt.Fprintf(fs.Output(), "\nArguments:\n")
-		fmt.Fprintf(fs.Output(), "  db filename    Path to the Calibre database file\n")
+		fmt.Fprintf(
+			fs.Output(),
+			"  db filename    Path to the Calibre database file\n",
+		)
 	}
 
 	// Parse flags (currently none, but this allows for future additions)
